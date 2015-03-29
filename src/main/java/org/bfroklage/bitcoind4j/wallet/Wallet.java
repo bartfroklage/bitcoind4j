@@ -176,7 +176,7 @@ public class Wallet extends Observable implements Runnable  {
 		try {
 			return (List<String>)client.invoke(new ListAddressesCommand(accountName));
 		} catch (Exception ex) {
-			throw new WalletException("Couldnot list the addresses: " + ex.getMessage());
+			throw new WalletException("Couldnot list the addresses: ", ex);
 		}		
 	}
 	

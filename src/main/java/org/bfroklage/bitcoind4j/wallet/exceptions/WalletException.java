@@ -4,7 +4,7 @@ public class WalletException extends Exception {
 	
 	private static final long serialVersionUID = 8549169633059475806L;
 
-	public WalletException(String msg) {
-		
+	public WalletException(String msg, Throwable cause) {
+		super(msg, cause);
 	}
 }
