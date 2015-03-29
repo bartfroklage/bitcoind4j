@@ -47,7 +47,7 @@ public class Wallet extends Observable implements Runnable  {
 		try {				
 			initializeTxFee();
 		} catch (Exception cpex) {
-			throw new WalletInitialisationException("Error initializing");
+			throw new WalletInitialisationException("Error initializing", cpex);
 		}
 	}
 	
@@ -137,7 +137,7 @@ public class Wallet extends Observable implements Runnable  {
 			String privateKey = (String)client.invoke(new DumpPrivateKeyCommand(address));
 			return new AddressInfo(address, privateKey);
 		} catch (Exception ex) {			
-			throw new WalletException("Couldnot generate address: " + ex.getMessage());
+			throw new WalletException("Couldnot generate address.", ex);
 		}
 	}
 	
@@ -151,7 +151,7 @@ public class Wallet extends Observable implements Runnable  {
 			client.invoke(cmd);			
 			return new MultisigContract(multisigInfo.getAddress(), multisigInfo.getRedeemScript());			
 		} catch (Exception ex) {
-			throw new WalletException("Couldnot generate multisig contract." + ex.getMessage());
+			throw new WalletException("Couldnot generate multisig contract.", ex);
 		}	
 	}
 	
@@ -159,7 +159,7 @@ public class Wallet extends Observable implements Runnable  {
 		try {
 			return (Double)client.invoke(new GetBalanceCommand(accountName));
 		} catch (Exception ex) {			
-			throw new WalletException("Couldnot check balance: " + ex.getMessage());
+			throw new WalletException("Couldnot check balance. ", ex);
 		}
 	}
 	
@@ -167,7 +167,7 @@ public class Wallet extends Observable implements Runnable  {
 		try {
 			return (Double)client.invoke(new GetReceivedByAddressCommand(address));
 		} catch (Exception ex) {			
-			throw new WalletException("Couldnot check balance: " + ex.getMessage());
+			throw new WalletException("Couldnot check balance. ", ex);
 		}
 	}
 	
@@ -184,7 +184,7 @@ public class Wallet extends Observable implements Runnable  {
 		try {	
 			return (String) client.invoke(new SendFromCommand(accountName, address, amount));
 		} catch(Exception ex) {
-			throw new WalletException("Couldnot withdraw: " + ex.getMessage());
+			throw new WalletException("Couldnot withdraw.", ex);
 		}
 	}
 	
