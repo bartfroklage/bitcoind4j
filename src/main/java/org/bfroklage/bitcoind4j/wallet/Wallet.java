@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
-import java.util.Queue;
 
 import org.apache.http.client.ClientProtocolException;
 import org.bfroklage.bitcoind4j.client.BitcoindClient;
@@ -28,7 +27,6 @@ import org.bfroklage.bitcoind4j.wallet.domain.Deposit;
 import org.bfroklage.bitcoind4j.wallet.domain.MultisigContract;
 import org.bfroklage.bitcoind4j.wallet.exceptions.WalletException;
 import org.bfroklage.bitcoind4j.wallet.exceptions.WalletInitialisationException;
-import org.eclipse.jetty.util.BlockingArrayQueue;
 
 public class Wallet extends Observable implements Runnable  {
 		
@@ -103,7 +101,9 @@ public class Wallet extends Observable implements Runnable  {
 		while (!finished) {			
 			ListTransactionsItem transaction = getTransaction(ix++);
 			if (transaction != null && !transaction.getTxid().equals(lastDoneTxid)) {
-				transactionsToHandle.push(transaction);
+				if (transaction.getConfirmations() >= minConfirmations) {
+					transactionsToHandle.push(transaction);
+				}
 			} else {
 				finished = true;
 			}			
@@ -122,6 +122,7 @@ public class Wallet extends Observable implements Runnable  {
 		}	
 	}	
 
+	@SuppressWarnings("unchecked")
 	private ListTransactionsItem getTransaction(int ix) {
 		ListTransactionsItem result = null;
 		try {	
