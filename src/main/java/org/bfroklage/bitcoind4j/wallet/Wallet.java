@@ -35,7 +35,7 @@ public class Wallet extends Observable implements Runnable  {
 	private final double transactionFee;
 	private final int minConfirmations;
 	
-	private int lastDoneTransactionIx = 0;		
+	private String lastDoneTxid;		
 	
 	private Thread pollingThread;
 	
@@ -91,22 +91,19 @@ public class Wallet extends Observable implements Runnable  {
 		}	
 	}
 	
-	private void checkTransactions() {				
-		int count = 10;		
-		boolean completed = false;
-		while (!completed) {
-			List<ListTransactionsItem> transactions = getTransactions(count, lastDoneTransactionIx);			
-			completed = (transactions.size() != count);	
-			for (ListTransactionsItem transaction: transactions) {
-				if (transaction.getConfirmations() >= minConfirmations) {
-					handleTransaction(transaction);
-					lastDoneTransactionIx++;
-				} else {
-					completed = true;
-					System.out.println("completed because not enoufhg conf.");
-				}				
-			}		
-		}						
+	private void checkTransactions() {	
+		for (int ix = 0; ;ix++ ) {
+			ListTransactionsItem transaction = getTransaction(ix);
+			
+			if (null == transaction || transaction.getTxid().equals(lastDoneTxid)) {
+				break;
+			}
+			
+			if (transaction.getConfirmations() >= minConfirmations) {
+				lastDoneTxid = transaction.getTxid();
+				handleTransaction(transaction);
+			}			
+		}  		
 	}
 			
 	private void handleTransaction(ListTransactionsItem tx) {
@@ -116,12 +113,14 @@ public class Wallet extends Observable implements Runnable  {
 		}	
 	}	
 
-	@SuppressWarnings("unchecked")
-	private List<ListTransactionsItem> getTransactions(int count, int offset) {
-		List<ListTransactionsItem> result = null;
+	private ListTransactionsItem getTransaction(int ix) {
+		ListTransactionsItem result = null;
 		try {	
-			result = (List<ListTransactionsItem>)client.invoke(
-					new ListTransactionsCommand(accountName, count, offset));
+			BitcoindCommand cmd = new ListTransactionsCommand(accountName, 1, ix);
+			List<ListTransactionsItem> list = (List<ListTransactionsItem>)client.invoke(cmd);
+			if (list.size() == 1) {
+				result = list.get(0);
+			}						
 		} catch (Exception ex) {
 			
 		}
