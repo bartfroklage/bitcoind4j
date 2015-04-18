@@ -33,7 +33,9 @@ public class Wallet extends Observable implements Runnable  {
 	private final String accountName;
 	private final long pollingInterval;
 	private final double transactionFee;
-	private String lastSeenTxid;		
+	private final int minConfirmations;
+	
+	private int lastDoneTransactionIx = 0;		
 	
 	private Thread pollingThread;
 	
@@ -41,7 +43,8 @@ public class Wallet extends Observable implements Runnable  {
 		this.accountName = builder.accountName;
 		this.pollingInterval = builder.pollingInterval;
 		this.transactionFee = builder.transactionFee;
-		this.lastSeenTxid = builder.lastSeenTxid;	
+		this.minConfirmations = builder.minConfirmations;
+		
 		client = new BitcoindClient.BitcoindClientBuilder(builder.endpoint, builder.username, builder.password).build();
 		
 		try {				
@@ -88,28 +91,21 @@ public class Wallet extends Observable implements Runnable  {
 		}	
 	}
 	
-	private void checkTransactions() {
-		boolean checkedAll = false;
-		boolean sawLastTransaction = false;
-		int count = 10, offset = 0;
-		String currentLastSeenTxid = "";
-		
-		while (!checkedAll && !sawLastTransaction) {
-			List<ListTransactionsItem> transactions = getTransactions(count, offset);			
-			for(ListTransactionsItem tx: transactions) {				
-				if (currentLastSeenTxid.equals("")) {
-					currentLastSeenTxid = tx.getTxid();
+	private void checkTransactions() {				
+		int count = 10;		
+		boolean completed = false;
+		while (!completed) {
+			List<ListTransactionsItem> transactions = getTransactions(count, lastDoneTransactionIx);			
+			completed = (transactions.size() != count);		
+			for (ListTransactionsItem transaction: transactions) {
+				if (transaction.getConfirmations() >= minConfirmations) {
+					handleTransaction(transaction);
+					lastDoneTransactionIx++;
+				} else {
+					completed = true;
 				}				
-				sawLastTransaction = sawLastTransaction || lastSeenTxid.equals(tx.getTxid());
-				
-				if (!sawLastTransaction) {
-					handleTransaction(tx);
-				}	
-			}
-			offset += count;
-			checkedAll = (transactions.size() < count);		
-		}
-		lastSeenTxid = currentLastSeenTxid;		
+			}		
+		}						
 	}
 			
 	private void handleTransaction(ListTransactionsItem tx) {
@@ -124,7 +120,7 @@ public class Wallet extends Observable implements Runnable  {
 		List<ListTransactionsItem> result = null;
 		try {	
 			result = (List<ListTransactionsItem>)client.invoke(
-					new ListTransactionsCommand(accountName, count, offset));		
+					new ListTransactionsCommand(accountName, count, offset));
 		} catch (Exception ex) {
 			
 		}
@@ -196,7 +192,7 @@ public class Wallet extends Observable implements Runnable  {
 		private String accountName = "";
 		private double transactionFee = 0.0d;
 		private long pollingInterval = 1000l;
-		private String lastSeenTxid = "";
+		private int minConfirmations = 3;
 		
 		public WalletBuilder(URL endpoint, String username, String password) {
 			this.endpoint = endpoint;
@@ -214,13 +210,13 @@ public class Wallet extends Observable implements Runnable  {
 			return this;
 		}
 		
-		public WalletBuilder lastSeenTxid(String lastSeenTxid) {
-			this.lastSeenTxid = lastSeenTxid;
+		public WalletBuilder transactionFee(double transactionFee) {
+			this.transactionFee = transactionFee;
 			return this;
 		}
 		
-		public WalletBuilder transactionFee(double transactionFee) {
-			this.transactionFee = transactionFee;
+		public WalletBuilder minConfirmations(int minConfirmations) {
+			this.minConfirmations = minConfirmations;
 			return this;
 		}
 						
