@@ -3,8 +3,10 @@ package org.bfroklage.bitcoind4j.wallet;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
+import java.util.Queue;
 
 import org.apache.http.client.ClientProtocolException;
 import org.bfroklage.bitcoind4j.client.BitcoindClient;
@@ -26,6 +28,7 @@ import org.bfroklage.bitcoind4j.wallet.domain.Deposit;
 import org.bfroklage.bitcoind4j.wallet.domain.MultisigContract;
 import org.bfroklage.bitcoind4j.wallet.exceptions.WalletException;
 import org.bfroklage.bitcoind4j.wallet.exceptions.WalletInitialisationException;
+import org.eclipse.jetty.util.BlockingArrayQueue;
 
 public class Wallet extends Observable implements Runnable  {
 		
@@ -92,18 +95,24 @@ public class Wallet extends Observable implements Runnable  {
 	}
 	
 	private void checkTransactions() {	
-		for (int ix = 0; ;ix++ ) {
-			ListTransactionsItem transaction = getTransaction(ix);
-			
-			if (null == transaction || transaction.getTxid().equals(lastDoneTxid)) {
-				break;
-			}
-			
-			if (transaction.getConfirmations() >= minConfirmations) {
-				lastDoneTxid = transaction.getTxid();
-				handleTransaction(transaction);
+		
+		LinkedList<ListTransactionsItem> transactionsToHandle = new LinkedList<ListTransactionsItem>();
+		boolean finished = false; 
+		int ix = 0;
+		
+		while (!finished) {			
+			ListTransactionsItem transaction = getTransaction(ix++);
+			if (transaction != null && !transaction.getTxid().equals(lastDoneTxid)) {
+				transactionsToHandle.push(transaction);
+			} else {
+				finished = true;
 			}			
-		}  		
+		}
+		
+		for (ListTransactionsItem transaction: transactionsToHandle) {
+			handleTransaction(transaction);
+			lastDoneTxid = transaction.getTxid();
+		}	
 	}
 			
 	private void handleTransaction(ListTransactionsItem tx) {

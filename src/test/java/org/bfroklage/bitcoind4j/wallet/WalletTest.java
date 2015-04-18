@@ -43,7 +43,7 @@ public class WalletTest extends TestCase implements Observer {
 	public void testDeposits() throws Exception {
 		
 		mockServer.addResponse("{\"result\":[{\"account\":\"\",\"address\":\"1XXsELCdjB69Jumk2X7Jpc1UCjoSKcjY1\",\"category\":\"receive\",\"amount\":0.00010156,\"confirmations\":16257,\"blockhash\":\"XfSS8be0JNd489P3Xf4Vc4XBP6HPd2Xe6ZUeKQVWOQCb2JVfY9aXZSaaY3A9EO89\",\"blockindex\":634,\"blocktime\":1411602487,\"txid\":\"XUEQVVTUSIS0f4HLJ257M4V0QXMRVW67ZGCMDC5S3UcL1dFcET0ZZUSCIe2MfJYO\",\"walletconflicts\":[],\"time\":1419012503,\"timereceived\":1419583987}],\"error\":null,\"id\":\"1\"}");
-		mockServer.addResponse("{\"result\":[{\"account\":\"\",\"address\":\"1XXsELCdjB69Jumk2X7Jpc1UCjoSKcjY1\",\"category\":\"receive\",\"amount\":0.00010156,\"confirmations\":16257,\"blockhash\":\"XfSS8be0JNd489P3Xf4Vc4XBP6HPd2Xe6ZUeKQVWOQCb2JVfY9aXZSaaY3A9EO89\",\"blockindex\":634,\"blocktime\":1411602487,\"txid\":\"XUEQVVTUSIS0f4HLJ257M4V0QXMRVW67ZGCMDC5S3UcL1dFcET0ZZUSCIe2MfJYO\",\"walletconflicts\":[],\"time\":1419012503,\"timereceived\":1419583987}],\"error\":null,\"id\":\"1\"}");
+	
 
 		for (int i =0; i< 10; i++) {
 			mockServer.addResponse("{\"result\":[],\"error\":null,\"id\":\"1\"}");
