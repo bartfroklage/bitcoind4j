@@ -96,13 +96,14 @@ public class Wallet extends Observable implements Runnable  {
 		boolean completed = false;
 		while (!completed) {
 			List<ListTransactionsItem> transactions = getTransactions(count, lastDoneTransactionIx);			
-			completed = (transactions.size() != count);		
+			completed = (transactions.size() != count);	
 			for (ListTransactionsItem transaction: transactions) {
 				if (transaction.getConfirmations() >= minConfirmations) {
 					handleTransaction(transaction);
 					lastDoneTransactionIx++;
 				} else {
 					completed = true;
+					System.out.println("completed because not enoufhg conf.");
 				}				
 			}		
 		}						
